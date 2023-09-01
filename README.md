@@ -1,3 +1,3 @@
-# matrix_rain_india
 
-matrix digital rain using indian languages
+
+digital character rain using indian languages.(as in matrix)
