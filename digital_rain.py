@@ -14,7 +14,7 @@ from pygame.locals import (
 
 #---input parameters---
 
-fps_rate=100
+fps_rate=50
 
 #SCREEN_WIDTH = 800
 #SCREEN_HEIGHT = 600
@@ -28,7 +28,7 @@ max_time=1000
 
 char_color=(200,255,200) #color of character
 transition_percentage=5 #(0-100)#how many percentage of total characters transition to another character in one time
-N_chains=1 #number of 'character chains'. should be less than len(start_positions) i.e less than 76
+N_chains=20 #number of 'character chains'. should be less than len(start_positions) i.e less than 76
 
 #---initializations-------
 pygame.init()
@@ -76,7 +76,7 @@ random.shuffle(rand_start_indices)
 
 #---make the character chain---
 chains=[]
-chain_heights=list(range(10,math.floor(SCREEN_HEIGHT/(1+char_height))-7))# maximum is SCREEN_HEIGHT/(1+char_height) #i.e (1080/28)=38
+chain_heights=list(range(10,math.floor(SCREEN_HEIGHT/(1+char_height))))# maximum is SCREEN_HEIGHT/(1+char_height) #i.e (1080/28)=38
 #N_chains=40#should be less than len(start_positions) i.e less than 76
 rand_start_indices=rand_start_indices[0:N_chains]
 chain_data=[]
@@ -87,9 +87,9 @@ for i in range(N_chains):
     chain_height=chain_heights[random.randint(0,len(chain_heights)-1)]
     char_list=[]
     for j in range(chain_height):
-        gradient=0.3+0.6*(j/chain_height)
+        gradient=0.05+0.6*(j/chain_height)
         char_color=(int(gradient*255),255,int(gradient*255))
-        if j==0: char_color=(200,255,200)
+        if j==0: char_color=(250,255,250)
         char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
         char_list.append([char_now,gradient])
     chain_data.append([x_pos,y_pos,speed,chain_height,char_list])
@@ -117,6 +117,7 @@ while running:
 
     # Fill the background with white
     screen.fill((255, 255, 255))
+    screen.fill((0, 0, 0))
 
     for i in range(N_chains):
         x_pos_char=chain_data[i][0]
@@ -125,6 +126,7 @@ while running:
             if random.random()<(transition_percentage/100):
                 gradient=chain_data[i][4][j][1]
                 char_color=(int(gradient*255),255,int(gradient*255))
+                if j==0: char_color=(250,255,250)
                 char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
                 chain_data[i][4][j][0]=char_now
             char_now=chain_data[i][4][j][0]
@@ -141,7 +143,7 @@ while running:
             char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
             char_list=[]
             for j in range(chain_height):
-                gradient=0.3+0.6*(j/chain_height)
+                gradient=0.05+0.6*(j/chain_height)
                 char_color=(int(gradient*255),255,int(gradient*255))
                 if j==0: char_color=(200,255,200)
                 char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
