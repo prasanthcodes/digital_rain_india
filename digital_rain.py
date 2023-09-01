@@ -12,26 +12,23 @@ from pygame.locals import (
     QUIT,
 )
 
-#---input params---
+#---input parameters---
+
 fps_rate=100
+
 #SCREEN_WIDTH = 800
 #SCREEN_HEIGHT = 600
 
 SCREEN_WIDTH = 1920
 SCREEN_HEIGHT = 1080
 
-
-hex1=['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
-devachar=[]
-for i in range(38):
-    devachar.append(chr(int('0x'+str(904+i),16)))
+# maximum count to run the main loop
+max_time=1000
 
 
-
-max_time=1e3
-
-
-N_chars=100
+char_color=(200,255,200) #color of character
+transition_percentage=5 #(0-100)#how many percentage of total characters transition to another character in one time
+N_chains=1 #number of 'character chains'. should be less than len(start_positions) i.e less than 76
 
 #---initializations-------
 pygame.init()
@@ -44,11 +41,11 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 font = pygame.font.Font("Nirmala.ttf", 20)
 fontB = pygame.font.Font("NirmalaB.ttf", 20)
 
-#---characters initializatiion---
-labelstack=[]
-label_positions=[]
-for i in range(N_chars):
-    label_positions.append([SCREEN_WIDTH*random.random(),SCREEN_HEIGHT*random.random(),1+3*random.random()])
+#---create and store 38 devanagari characters---
+hex1=['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
+devachar=[]
+for i in range(38):
+    devachar.append(chr(int('0x'+str(904+i),16)))
 
 
 #---to find character height and width---
@@ -64,27 +61,41 @@ for i in range(len(devachar)):
     if tmp_w>char_width: char_width=tmp_w
     if tmp_h>char_height: char_height=tmp_h
 
-print('char_width=',char_width)
-print('char_height=',char_height)
+print('char_width=',char_width)#26
+print('char_height=',char_height)#27
+
+#---to allocate top most postions for 'character chain'-----
 start_positions=[]
 for i in range(SCREEN_WIDTH):
     start_positions.append(i*char_width)
-    if i*char_width>SCREEN_WIDTH: break
+    if i*char_width>(SCREEN_WIDTH-char_width): break
 #print('start_positions=',start_positions)
 
 rand_start_indices=list(range(len(start_positions)))
 random.shuffle(rand_start_indices)
 
+#---make the character chain---
 chains=[]
-chain_heights=list(range(5,math.floor(SCREEN_HEIGHT/(1+char_height))))# maximum is SCREEN_HEIGHT/(1+char_height)
-N_chains=40#should be less than len(start_positions) i.e approximately 76
+chain_heights=list(range(10,math.floor(SCREEN_HEIGHT/(1+char_height))-7))# maximum is SCREEN_HEIGHT/(1+char_height) #i.e (1080/28)=38
+#N_chains=40#should be less than len(start_positions) i.e less than 76
 rand_start_indices=rand_start_indices[0:N_chains]
-chain_positions=[]
+chain_data=[]
 for i in range(N_chains):
-    chain_positions.append([start_positions[rand_start_indices[i]],SCREEN_HEIGHT*0*random.random(),1+3*random.random(),chain_heights[random.randint(0,len(chain_heights)-1)]])
+    x_pos=start_positions[rand_start_indices[i]]
+    y_pos=SCREEN_HEIGHT*0*random.random()
+    speed=2+5*random.random()
+    chain_height=chain_heights[random.randint(0,len(chain_heights)-1)]
+    char_list=[]
+    for j in range(chain_height):
+        gradient=0.3+0.6*(j/chain_height)
+        char_color=(int(gradient*255),255,int(gradient*255))
+        if j==0: char_color=(200,255,200)
+        char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
+        char_list.append([char_now,gradient])
+    chain_data.append([x_pos,y_pos,speed,chain_height,char_list])
     
 
-
+char_color=(200,255,200)
 time_count=1
 running = True
 clock = pygame.time.Clock()
@@ -107,31 +118,37 @@ while running:
     # Fill the background with white
     screen.fill((255, 255, 255))
 
-    # label = fontB.render(devachar[0], 1, (0,255,0))
-    # for i in range(N_chars):
-        # labelstack.append(fontB.render(devachar[i%(len(devachar))], 1, (0,255,0)))
-        # #print(labelstack[i].get_height())
-        # # put the label object on the screen at point x=100, y=100
-        # x_pos_char=label_positions[i][0]
-        # label_positions[i][1]+=label_positions[i][2]
-        # y_pos_char=label_positions[i][1]
-        # if y_pos_char>SCREEN_HEIGHT:
-            # label_positions[i]=[SCREEN_WIDTH*random.random(),(SCREEN_HEIGHT*0)*random.random(),1+3*random.random()]
-        # screen.blit(labelstack[i], (x_pos_char, y_pos_char))
-        
     for i in range(N_chains):
-        x_pos_char=chain_positions[i][0]
-        chain_height=chain_positions[i][3]
+        x_pos_char=chain_data[i][0]
+        chain_height=chain_data[i][3]
         for j in range(chain_height):
-            cnow=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, (0,255,0))
-            #labelstack.append(fontB.render(devachar[i%(len(devachar))], 1, (0,255,0)))
-            y_pos_char=chain_positions[i][1]-j*(1+char_height)
+            if random.random()<(transition_percentage/100):
+                gradient=chain_data[i][4][j][1]
+                char_color=(int(gradient*255),255,int(gradient*255))
+                char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
+                chain_data[i][4][j][0]=char_now
+            char_now=chain_data[i][4][j][0]
+            y_pos_char=chain_data[i][1]-j*(1+char_height)
             if y_pos_char<0: break
-            screen.blit(cnow, (x_pos_char, y_pos_char))
+            screen.blit(char_now, (x_pos_char, y_pos_char))
             
+        #---if 'character chain' goes down below the screen, it creates new one from top---
         if y_pos_char>SCREEN_HEIGHT:
-            chain_positions[i]=[start_positions[random.randint(0,len(start_positions)-1)],SCREEN_HEIGHT*0*random.random(),1+3*random.random()]
-        chain_positions[i][1]+=chain_positions[i][2]
+            x_pos=start_positions[random.randint(0,len(start_positions)-1)]
+            y_pos=SCREEN_HEIGHT*0*random.random()
+            speed=2+5*random.random()
+            chain_height=chain_heights[random.randint(0,len(chain_heights)-1)]
+            char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
+            char_list=[]
+            for j in range(chain_height):
+                gradient=0.3+0.6*(j/chain_height)
+                char_color=(int(gradient*255),255,int(gradient*255))
+                if j==0: char_color=(200,255,200)
+                char_now=fontB.render(devachar[random.randint(0,len(devachar)-1)], 1, char_color)
+                char_list.append([char_now,gradient])
+            chain_data[i]=[x_pos,y_pos,speed,chain_height,char_list]
+            
+        chain_data[i][1]+=chain_data[i][2]
 
         
     pygame.display.flip()
