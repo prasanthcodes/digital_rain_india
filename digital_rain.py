@@ -26,7 +26,6 @@ SCREEN_HEIGHT = 1080
 max_time=1000
 
 
-char_color=(200,255,200) #color of character
 transition_percentage=1 #(0-100)#how many percentage of total characters transition to another character in one time
 N_chains=30 #number of 'character chains'. should be less than len(start_positions) i.e less than 76
 
@@ -38,7 +37,7 @@ pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
 
-font = pygame.font.Font("Nirmala.ttf", 20)
+#font = pygame.font.Font("Nirmala.ttf", 20)
 fontB = pygame.font.Font("NirmalaB.ttf", 20)
 
 #---create and store 38 devanagari characters---
@@ -95,7 +94,6 @@ for i in range(N_chains):
     chain_data.append([x_pos,y_pos,speed,chain_height,char_list])
     
 
-char_color=(200,255,200)
 time_count=1
 running = True
 clock = pygame.time.Clock()
